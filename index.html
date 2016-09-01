@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<style type="text/css">
+    body{
+        font-family: "メイリオ";
+    }
+    label.file_select{
+        background-color: lightslategray;
+        border: black 1px solid;
+        border-radius: 5px;
+        color: white;
+        padding: 5px;
+    }
+    .fixed-table {
+        table-layout: fixed;
+        border-collapse: collapse;
+    }
+    
+    .fixed-table  td{
+        text-align: center;
+        vertical-align: middle;
+        padding: 0;
+        height: 20px;
+        width: 30px;
+    }
+    
+    .fixed-table tr:first-child td {
+        background-color: blue;
+        color: white;
+    }
+    .fixed-table td, .fixed-table th {
+        border: 1px solid black;
+        min-width: 25px;
+    }
+    .spair {
+        /*スペアのCSSが一発で決まらなかったのでめんどくさいから放置。。*/
+        width: 0;
+        height: 0;
+        border-color: transparent black black transparent;
+        border-style: solid;
+        border-width: 10px 15px;
+    }
+    .strike {
+        width: 0;
+        height: 0;
+        border-color: transparent black transparent black;
+        border-style: solid;
+        border-width: 10px 15px;
+    }
+</style>
+<script type="text/javascript" src="culc.js"></script>
+<script type="text/javascript">
+    
+    window.onload = function(){
+        // ファイル選択と同時にスコア計算するようにイベント設定
+        document.getElementById("file").addEventListener("change", readFile);
+    }
+    
+    // ファイル選択時イベント
+    function readFile(evt){
+        var file = evt.target.files[0];
+        var reader = new FileReader;
+        reader.readAsText(file);
+        reader.onload = function(){
+            var data = JSON.parse(this.result);
+            var bowling = new Bowling(data["pin_max"], data["frame"]);
+            var throwCount = data["game_data"].length;
+            for (var i = 0; i < throwCount; i++) {
+                var throwData = data["game_data"][i];
+                bowling.bowlThrow(throwData["pin"], throwData["foul"], throwData["split"]);
+            }
+            bowling.culcScore();
+            var scoreDiv = document.getElementById("score");
+            scoreDiv.innerHTML = bowling.getScoreHtml();
+            scoreDiv.firstElementChild.classList.add("fixed-table");
+            scoreDiv.innerHTML = scoreDiv.innerHTML.replace(/SP/g, "<div class='spair'></spair>");
+            scoreDiv.innerHTML = scoreDiv.innerHTML.replace(/ST/g, "<div class='strike'></spair>");
+        }
+    }
+
+</script>
+</head>
+<body>
+    <p>
+        <label for="file" class="file_select">
+            ファイル選択
+            <input id="file" type="file" style="display:none"/>
+        </label>
+    </p>
+    <p>
+        <label>スコア</label><br>
+    </p>
+    <div id="score"></div>
+</body>
+</html>
